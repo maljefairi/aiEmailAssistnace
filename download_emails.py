@@ -41,6 +41,25 @@ def safe_decode(data):
     else:
         return data  # If already a string
 
+def get_body_from_msg(msg):
+    if msg.is_multipart():
+        for part in msg.walk():
+            content_type = part.get_content_type()
+            content_disposition = str(part.get("Content-Disposition"))
+
+            if "attachment" not in content_disposition:
+                # No attachment, fetch the body
+                if content_type == "text/plain":
+                    return safe_decode(part.get_payload(decode=True))
+                elif content_type == "text/html":
+                    # If you'd like to also process HTML bodies, do it here
+                    # In this code, it's ignored and it continues to check other parts
+                    continue
+    else:
+        # Not multipart, fetch body directly
+        return safe_decode(msg.get_payload(decode=True))
+    return ""  # Return empty string if no body was found
+
 def fetch_emails(last_timestamp=None):
     context = ssl.create_default_context()
     mail = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT, ssl_context=context)
@@ -64,13 +83,12 @@ def fetch_emails(last_timestamp=None):
                 msg = email.message_from_bytes(response_part[1])
                 email_subject = safe_decode(decode_header(msg["Subject"])[0][0])
                 email_from = safe_decode(decode_header(msg["From"])[0][0])
-
                 email_date = parse_email_date(msg["Date"])
+                
+                body = get_body_from_msg(msg)  # Use the updated function to get the body
+                
                 if not max_timestamp or email_date > max_timestamp:
                     max_timestamp = email_date
-
-                payload = msg.get_payload(decode=True)
-                body = safe_decode(payload) if payload else ''
 
                 all_emails.append({
                     "from": email_from,
