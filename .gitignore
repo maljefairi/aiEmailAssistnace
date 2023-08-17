@@ -1,3 +1,4 @@
 .env
 config.ini
 emails.json
+last_timestamp.txt

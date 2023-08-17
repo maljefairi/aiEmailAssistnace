@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Assistant Email Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        
+        <!-- Newly Received Emails Section -->
+        <h2>Newly Received Emails</h2>
+        <form action="{{ url_for('generate_reply') }}" method="post">
+            <table class="table table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Select</th>
+                        <th>From</th>
+                        <th>Subject</th>
+                        <th>Body</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for email in new_emails %}
+                    <tr>
+                        <td><input type="checkbox" name="selected_emails" value="{{ email.id }}"></td>
+                        <td>{{ email.from }}</td>
+                        <td>{{ email.subject }}</td>
+                        <td>{{ email.body }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary">Edit</button>
+                            <button class="btn btn-sm btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-info mb-3" name="action" value="generate">Generate Reply</button>
+            <button type="submit" class="btn btn-success mb-3" name="action" value="send">Send Reply</button>
+        </form>
+        
+        <!-- Incoming Emails Section -->
+        <h2 class="mt-5">Incoming Emails</h2>
+        <div class="mb-3">
+            <label for="classificationFilter">Filter by Classification:</label>
+            <select id="classificationFilter" class="form-control w-auto">
+                <option value="{{ url_for('dashboard') }}">All</option>
+                <option value="{{ url_for('dashboard', classification='Greeting') }}">Greeting</option>
+                <!-- Add more classifications as needed -->
+            </select>
+        </div>
+        <table class="table table-striped">
+            <thead class="thead-light">
+                <tr>
+                    <th>From</th>
+                    <th>Subject</th>
+                    <th>Body</th>
+                    <th>Classification</th>
+                    <th>Importance</th>
+                    <th>AI Reply</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in combined_data %}
+                <tr>
+                    <td>{{ data.email.from }}</td>
+                    <td>{{ data.email.subject }}</td>
+                    <td>{{ data.email.body }}</td>
+                    <td>{{ data.email.classification }}</td>
+                    <td>{{ data.email.importance }}</td>
+                    <td>{{ data.reply.reply }}</td>
+                    <td>
+                        <button class="btn btn-primary">Approve Reply</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('settings') }}" class="btn btn-secondary">Settings</a>
+    </div>
+
+    <!-- JavaScript for dropdown redirection -->
+    <script>
+        document.getElementById("classificationFilter").onchange = function() {
+            window.location.href = this.value;
+        };
+    </script>
+</body>
+</html>
